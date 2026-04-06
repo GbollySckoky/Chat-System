@@ -13,3 +13,5 @@ console.log(token);
 console.log(user.name);
 res.status(201).json({ user: { name: user.name }, token });
 }
+
+export { signUp }
