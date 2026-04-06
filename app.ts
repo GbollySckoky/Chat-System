@@ -1,14 +1,16 @@
 require('dotenv').config();
 import express from 'express';
 import connectDB from './db/connect';
-// const express = require('express');
+const authRouter = require('./route/auth');
 import mongoose from 'mongoose';
 // import authRouter from './routes/auth';
 import notFound from './middleware/not-found';
 
 const app = express();
-
 app.use(express.json());
+
+
+app.use('/api/v1/auth', authRouter);
 
 app.use(notFound);
 const PORT = process.env.PORT || 5000;

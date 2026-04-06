@@ -28,17 +28,22 @@ const AuthSchema = new mongoose.Schema<IAuth>({
     name: {
         type: String,
         required: [true, 'Name is required'],
-        unique: true
+        minLength: 3,
+        maxLength: 50
     },
     email:{
         type: String,
-        required: [true, 'Email is required'],
-        unique: true,
-        match: [/\S+@\S+\.\S+/, 'Email is invalid']
+        require: [true, 'Please provide an email'],
+        match: [
+        /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/, //regex
+        'Please provide a valid email'
+        ],
+        unique: true
     },
     password: {
         type: String,
-        required: [true, 'Password is required']
+        require: [true, 'Please provide a password'],
+        minLength: 6
     }
 });
 
