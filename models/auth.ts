@@ -4,7 +4,27 @@ import jwt  from 'jsonwebtoken'
 require('dotenv').config();
 
 
-const AuthSchema = new mongoose.Schema({
+/**
+ * When you extend Document, Mongoose's Document type already includes built-in properties like _id, 
+ * save(), toJSON(), etc. So by doing interface IAuth extends Document, your IAuth interface inherits all of 
+ * those automatically, and you only need to add your own custom fields on top.
+ * 
+ * Document → _id, save(), toJSON(), etc.
+    +
+IAuth  → name, email, password, createJWT(), comparePassword()
+    =
+Full Mongoose document with your custom fields
+ */
+interface IAuth extends Document {
+    name: string;
+    email: string;
+    password: string;
+    createJWT: () => string;
+    comparePassword: (candidatePassword: string) => Promise<boolean>;
+}
+
+
+const AuthSchema = new mongoose.Schema<IAuth>({
     name: {
         type: String,
         required: [true, 'Name is required'],
@@ -24,7 +44,7 @@ const AuthSchema = new mongoose.Schema({
 
 // module.exports = mongoose.model('Auth', Auth);
 
-export default mongoose.model('Auth', AuthSchema);
+
 
 // Hash Passsword
 AuthSchema.pre('save', async function (next) {
@@ -46,3 +66,9 @@ AuthSchema.methods.createJWT = function () {
     );
 }
 
+AuthSchema.methods.comparePassword = async function (candidatePassword: string) {
+    const isMatch = await bcrypt.compare(candidatePassword, this.password);
+    return isMatch;
+}
+
+export default mongoose.model('Auth', AuthSchema);
