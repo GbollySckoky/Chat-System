@@ -25,12 +25,22 @@ if (!email || !password) {
     throw new BadRequestError("Please provide email and password");
 }
 
-   // To verify the login or if the user exits
+// To verify the login or if the user exits
 const user = await Auth.findOne({ email });
  // if user info is wrong || if user is not authorized
 if (!user) {
     throw new UnauthenticatedError("Invalid Credentials");
 }
+
+// check if password is correct
+const isPasswordCorrect = await user.comparePassword(password);
+if (!isPasswordCorrect) {
+    throw new UnauthenticatedError("Invalid Credentials");
+}
+
+// check if password is correct, then create token
+const token = user.createJWT();
+res.status(StatusCodes.OK).json({ user: { name: user.name }, token });
 }
 
 export { signUp, login }
