@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "app.ts",
   "scripts": {
-  "dev": "nodemon --exec ts-node app.ts",
+    "dev": "nodemon --exec ts-node app.ts",
     "start": "nodemon app.ts"
   },
   "keywords": [],
@@ -17,7 +17,8 @@
     "http-status-codes": "^2.3.0",
     "jsonwebtoken": "^9.0.3",
     "jwt-decode": "^4.0.0",
-    "mongoose": "^8.23.0"
+    "mongoose": "^8.23.0",
+    "socket.io": "^4.8.3"
   },
   "devDependencies": {
     "@types/express": "^5.0.6",
