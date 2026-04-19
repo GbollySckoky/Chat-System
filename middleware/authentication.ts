@@ -1,7 +1,7 @@
 import { NextFunction, Response } from "express"
 const jwt = require('jsonwebtoken')
 const { UnauthenticatedError } = require('../errors')
-import { AuthRequest } from "../types/authRequest"
+import { AuthRequest } from "../interface/authRequest"
 
 const auth = async (req: AuthRequest, res: Response, next: NextFunction) => {
   const authHeader = req.headers.authorization;
