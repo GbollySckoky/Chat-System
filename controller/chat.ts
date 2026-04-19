@@ -58,8 +58,78 @@ export function registerChatHandlers(io: Server, socket: AuthSocket) {
         io.to(roomId).emit('presence:update', { roomId, users: getPresenceList(roomId) });
         console.log(`👋 ${user.username} left room: ${roomId}`);
     })
+
+     // ─── message:send ──────────────────────────────────────────────────────────
+    // 1. Validate payload
+    // 2. Persist to MongoDB
+    // 3. Broadcast to all in room (including sender)
+    // 4. ACK back to sender with the saved message
     // console.log("a user connected");
 
+    socket.on("message:send", async (payload: SendMessagePayload, callback) => {
+        const { roomId, content, type = 'text' } = payload;
+        
+        // Basic validation
+        if (!content?.trim()) {
+            return callback({ status: 'error', message: 'Message cannot be empty' });
+        }
+
+        if(!roomId){
+            return callback({ status: 'error', message: 'roomId is required' });
+        }
+
+        if (content.length > 4000) {
+            return callback({ status: 'error', message: "Message too long" });
+        }
+        
+        try{
+            const saved = await Messages.create({
+                roomId,
+                sender: {
+                    userId: user.userId,
+                    username: user.username,
+                    avatar: user.avatar
+                },
+                content: content.trim(),
+                type,
+                readBy: [user.userId], // Sender has already read their own message
+            });
+
+            const messageData = saved.toObject();
+            console.log("Message saved:", messageData);
+            // Broadcast to everyone in the room, including sender
+            io.to(roomId).emit("message:new", messageData);
+
+            // ACK back to sender with the saved message
+            callback({ status: 'ok', message: messageData });
+        }catch (error) {
+            console.error("Error occurred while sending message:", error);
+            callback({ status: 'error', message: 'Failed to send message' });
+        }
+    })
+
+     // ─── message:delete ────────────────────────────────────────────────────────
+
+
+    // ─── typing indicators ─────────────────────────────────────────────────────
+  // Emit to everyone in the room EXCEPT the sender (socket.to vs io.to)
+    socket.on("typing:start", () => {
+        io.to(roomId).emit("typing:update", 
+        { 
+            userId: user.userId, 
+            username: user.username, 
+            avatar: user.avatar, 
+            isTyping: true });
+    })
+
+    socket.on("typing:stop", () => {
+        io.to(roomId).emit("user:stopped_typing",{
+            userId: user.userId,
+            username: user.username,
+            avatar: user.avatar,
+            isTyping: false
+        })
+    })
     // socket.on("disconnect", () => {
     //     console.log("user disconnected");
     // });
