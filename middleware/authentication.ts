@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken')
 const { UnauthenticatedError } = require('../errors')
 import { AuthRequest } from "../interface/authRequest"
 
-const auth = async (req: AuthRequest, res: Response, next: NextFunction) => {
+const authMiddleware = async (req: AuthRequest, res: Response, next: NextFunction) => {
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith("Bearer")) {
@@ -28,4 +28,4 @@ const auth = async (req: AuthRequest, res: Response, next: NextFunction) => {
     throw new UnauthenticatedError("Authentication invalid");
   }
 };
-module.exports = auth
+export default authMiddleware
