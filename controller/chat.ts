@@ -7,6 +7,7 @@ const roomPresence = new Map<string, Set<{ userId: string; username: string; ava
 const getPresenceList = (roomId: string) =>
     Array.from(roomPresence.get(roomId) ?? []);
 
+// CHECK README.MD FOR WEBSOCKET METHODS
 export function registerChatHandlers(io: SocketServer, socket: AuthSocket) {
     const user = socket.user!;
 
