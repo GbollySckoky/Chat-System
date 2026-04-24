@@ -9,7 +9,7 @@ import jwt from "jsonwebtoken";
 import cors from "cors";
 import { AuthSocket } from './interface/authSocket';
 import { registerChatHandlers } from './controller/chat';
-
+import messageRouter from './route/message';  
 
 const app = express();
 const httpServer = http.createServer(app);

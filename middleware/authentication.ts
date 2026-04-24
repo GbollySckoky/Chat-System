@@ -1,18 +1,23 @@
-import { NextFunction, Response } from "express"
-const jwt = require('jsonwebtoken')
-const { UnauthenticatedError } = require('../errors')
-import { AuthRequest } from "../interface/authRequest"
+import { NextFunction, Response, Request } from "express"
+import jwt from 'jsonwebtoken'
+import { UnauthenticatedError } from '../errors'
+require('dotenv').config();
 
-const authMiddleware = async (req: AuthRequest, res: Response, next: NextFunction) => {
+const authMiddleware = async (req: Request, res: Response, next: NextFunction) => {
   const authHeader = req.headers.authorization;
 
-  if (!authHeader || !authHeader.startsWith("Bearer")) {
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
     throw new UnauthenticatedError("Authentication invalid");
   }
 
   const token = authHeader.split(" ")[1];
 
+  if (!process.env.JWT_SECRET_KEY) {
+    throw new Error("JWT_SECRET_KEY is not defined");
+  }
+
   try {
+    // passing the id to the payload of the token, so we can use it later to identify the user
     const payload = jwt.verify(token, process.env.JWT_SECRET_KEY as string) as {
       userId: string;
       name: string;

@@ -11,3 +11,13 @@ socket.broadcast.emit('event_name', data): Sends a message to every client excep
 socket.join('room_name'): Adds the socket to a specific channel or "room" for targeted broadcasting.
 io.to('room_name').emit('event_name', data): Sends a message only to clients who have joined a specific room.
 socket.on('disconnect', callback): Fires when a client loses connection or closes the tab.  -->
+
+<!-- MONGOOSE METHOD
+MessageModel.find()
+MessageModel.findById()
+MessageModel.findOne()
+MessageModel.findByIdAndUpdate()
+MessageModel.findByIdAndDelete()
+MessageModel.create()
+MessageModel.deleteMany()
+ -->

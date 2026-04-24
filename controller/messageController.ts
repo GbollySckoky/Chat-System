@@ -1,5 +1,5 @@
-import { StatusCodes } from "http-status-codes";
-import Messages from "../models/message";
+const { StatusCodes } = require("http-status-codes");
+const  Messages = require("../models/message");
 import { Request, Response } from "express";
 
 // Check README.MD for details on how to implement the getChat function.
@@ -27,7 +27,7 @@ import { Request, Response } from "express";
  */
 
 
-const getChat = async (req: Request, res: Response) => {
+const getMessages = async (req: Request, res: Response) => {
     // Your chat system logic here
     const { userId, roomId, sender, content } = req.query ; // Extract any query parameters if needed
 
@@ -87,3 +87,46 @@ const getChat = async (req: Request, res: Response) => {
         res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ success: false, message: "Server Error" });
     }
 }
+
+/** DELETE MESSAGE FLOW
+ * client has a message on screen
+        ↓
+    user clicks delete
+            ↓
+    client sends the messageId to server
+            ↓
+    server uses that messageId to find the message in MongoDB
+            ↓
+    server checks if the sender.userId matches the logged in user
+            ↓
+    if yes → soft delete it
+    if no  → return unauthorized
+ */
+
+const deleteMessage = async (req: Request, res: Response) => {
+    const { messageId } = req.params;
+    const userId = req?.user?.userId; // Assuming you have userId from authentication middleware
+
+    // you defined deletedAt in the schema
+    //     ↓
+    // every new message gets deletedAt: null by default
+    //         ↓
+    // when someone deletes a message
+    //         ↓
+    // you set deletedAt = new Date()  ← stamps it with current time
+    //         ↓
+    // pre('find') hook sees deletedAt is not null
+    //         ↓
+    // filters it out of all queries
+
+    if (!messageId) return res.status(StatusCodes.BAD_REQUEST).json({ success: false, message: "messageId is required" });
+    const result = await Messages.findById(messageId);
+    if (!result) return res.status(StatusCodes.NOT_FOUND).json({ success: false, message: "Message not found" });
+    if (result.sender.userId !== userId) return res.status(StatusCodes.UNAUTHORIZED).json({ success: false, message: "Unauthorized" });
+
+    result.deletedAt = new Date();
+    await result.save();
+    res.status(StatusCodes.OK).json({ success: true, message: "Message deleted" });
+}
+
+export { getMessages, deleteMessage }
