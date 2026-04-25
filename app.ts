@@ -1,82 +1,97 @@
-require('dotenv').config();
-import express from 'express';
-import connectDB from './db/connect';
-const authRouter = require('./route/auth');;
-import { Server } from 'socket.io';
-import http from 'http';
-import notFound from './middleware/not-found';
+import dotenv from "dotenv";
+dotenv.config();
+
+import express from "express";
+import http from "http";
+import { Server } from "socket.io";
 import jwt from "jsonwebtoken";
 import cors from "cors";
-import { AuthSocket } from './interface/authSocket';
-import { registerChatHandlers } from './controller/chat';
-import messageRouter from './route/message';  
+
+import connectDB from "./db/connect";
+import authRouter from "./route/auth";
+import messageRouter from "./route/message";
+import notFound from "./middleware/not-found";
+import { AuthSocket } from "./interface/authSocket";
+import { registerChatHandlers } from "./controller/chat";
 
 const app = express();
 const httpServer = http.createServer(app);
 
-
-// ─── Socket.IO Server Setup ───────────────────────────────────────────────────
 export const io = new Server(httpServer, {
   cors: {
-    origin: process.env.CLIENT_URL || "http://localhost:5173",
+    origin: process.env.CLIENT_URL || [  "http://localhost:3000","http://localhost:5173"],
     methods: ["GET", "POST"],
     credentials: true,
   },
-  // Every 25 seconds the server sends a ping to every connected client basically asking "you still there?".
-  //  This is to detect dead connections.
-  pingInterval: 25000,
-//   If the client doesn't reply to that ping within 60 seconds, the server assumes they're gone and disconnects them
-// . This fires the disconnect event and cleans up their presence.
-  pingTimeout: 60000,
-  // Allow up to 1MB per message
-  maxHttpBufferSize: 1e6,
 });
 
-// ─── JWT Auth Middleware (runs before every connection) ───────────────────────
 io.use((socket: AuthSocket, next) => {
+  const authHeader = socket.handshake.headers["authorization"];
+
   const token =
     socket.handshake.auth.token ||
-    socket.handshake.headers["authorization"]?.split(" ")[1];
- 
-  if (!token) return next(new Error("Authentication error: No token provided"));
- 
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as {
+    (authHeader && authHeader.startsWith("Bearer ")
+      ? authHeader.split(" ")[1]
+      : null);
+
+  if (!token) return next(new Error("Authentication error"));
+
+  // try {
+    const decoded = jwt.verify(
+      token,
+      process.env.JWT_SECRET_KEY!
+    ) as {
       userId: string;
       username: string;
       avatar?: string;
     };
-    socket.user = decoded; // Attach user to socket instance
+// You give them a name tag:
+// “Okay, you are Gbolahan. Come in.”
+    socket.user = decoded;
     next();
-  } catch {
-    next(new Error("Authentication error: Invalid token"));
-  }
+  // } catch {
+    next(new Error("Authentication error"));
+  // }
 });
- 
-// ─── Register Chat Event Handlers ────────────────────────────────────────────
+
 io.on("connection", (socket: AuthSocket) => {
-  console.log(`✅ User connected: ${socket.user?.username} [${socket.id}]`);
+  console.log(`✅ ${socket.user?.username} connected`);
   registerChatHandlers(io, socket);
 });
 
 app.use(express.json());
-app.use(cors({ origin: process.env.CLIENT_URL || "http://localhost:5173", credentials: true }));
-app.use("/api/messages", messageRouter);
-app.use(express.json());
+/**
+ * Why credentials: true?
+ * 👉 Means:
+ * “Allow cookies / auth headers (like JWT) to be sent”
+ * Without it:
+ * “No cookies / auth headers will be sent”
+ * 
+ * "*" 
+ * But "*" means:
+ * “Allow ANY website in the world”
+ * means allow any browser to connect, but it won't work with credentials: true. 
+ * You need to specify the exact origin (like http://localhost:3000) for it to work properly.
+ * so take it out and add your client URL in the origin field, or if you want to allow multiple origins you can do something like this:
+ * origin: [ "http://localhost:3000", "http://localhost:5173" ]
+ * 
+ * In development, you might want to allow all origins for testing, but in production, you should specify the exact origin of your client application for security reasons.
+ * * */
+app.use(cors({ origin: process.env.CLIENT_URL, credentials: true }));
 
-app.use('/api/v1/auth', authRouter);
+app.use("/api/messages", messageRouter);
+app.use("/api/v1/auth", authRouter);
 
 app.use(notFound);
+
 const PORT = process.env.PORT || 5000;
 
 const start = async () => {
-    try {
-        await connectDB(process.env.MONGO_URI as string);
-        console.log('Connected to MongoDB');
-        app.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
-    } catch (error) {
-        console.error('Error connecting to MongoDB:', error);
-    }
-}
+  await connectDB(process.env.MONGO_URI as string);
+
+  httpServer.listen(PORT, () => {
+    console.log(`Server running on ${PORT}`);
+  });
+};
 
 start();

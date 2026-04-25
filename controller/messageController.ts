@@ -1,6 +1,7 @@
-const { StatusCodes } = require("http-status-codes");
-const  Messages = require("../models/message");
-import { Request, Response } from "express";
+import { NextFunction, Response, Request } from "express"
+import { StatusCodes } from "http-status-codes";
+import Messages from "../models/message";
+import { AuthRequest } from "../interface/authRequest";
 
 // Check README.MD for details on how to implement the getChat function.
 /**
@@ -103,7 +104,7 @@ const getMessages = async (req: Request, res: Response) => {
     if no  → return unauthorized
  */
 
-const deleteMessage = async (req: Request, res: Response) => {
+const deleteMessage = async (req: AuthRequest, res: Response) => {
     const { messageId } = req.params;
     const userId = req?.user?.userId; // Assuming you have userId from authentication middleware
 
@@ -127,6 +128,11 @@ const deleteMessage = async (req: Request, res: Response) => {
     result.deletedAt = new Date();
     await result.save();
     res.status(StatusCodes.OK).json({ success: true, message: "Message deleted" });
+}
+
+const createMessage = async (req: Request, res: Response) => {
+    // Your chat system logic here
+    res.status(StatusCodes.OK).json({ success: true, message: "Message created" });
 }
 
 export { getMessages, deleteMessage }
