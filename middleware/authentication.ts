@@ -1,9 +1,10 @@
 import { NextFunction, Response, Request } from "express"
 import jwt from 'jsonwebtoken'
 import { UnauthenticatedError } from '../errors'
+import { AuthRequest } from "../interface/authRequest";
 require('dotenv').config();
 
-const authMiddleware = async (req: Request, res: Response, next: NextFunction) => {
+const authMiddleware = async (req: AuthRequest, res: Response, next: NextFunction) => {
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
