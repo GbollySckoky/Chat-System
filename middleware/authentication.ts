@@ -22,11 +22,13 @@ const authMiddleware = async (req: AuthRequest, res: Response, next: NextFunctio
     const payload = jwt.verify(token, process.env.JWT_SECRET_KEY as string) as {
       userId: string;
       name: string;
+      avatar: string;
     };
 
     req.user = {
       userId: payload.userId,
       name: payload.name,
+      avatar: payload.avatar
     };
 
     next();

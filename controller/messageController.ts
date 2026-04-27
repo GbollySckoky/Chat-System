@@ -2,6 +2,7 @@ import { NextFunction, Response, Request } from "express"
 import { StatusCodes } from "http-status-codes";
 import Messages from "../models/message";
 import { AuthRequest } from "../interface/authRequest";
+import { UnauthenticatedError } from "../errors";
 
 // Check README.MD for details on how to implement the getChat function.
 /**
@@ -130,9 +131,45 @@ const deleteMessage = async (req: AuthRequest, res: Response) => {
     res.status(StatusCodes.OK).json({ success: true, message: "Message deleted" });
 }
 
-const createMessage = async (req: Request, res: Response) => {
-    // Your chat system logic here
-    res.status(StatusCodes.OK).json({ success: true, message: "Message created" });
-}
+/**
+ * client sends { content, roomId } in req.body
+        ↓
+check user is logged in
+        ↓
+validate content and roomId are present
+        ↓
+save message to MongoDB with sender info from req.user
+        ↓
+return saved message to client
+ */
+// const createMessage = async (req: AuthRequest, res: Response) => {
+//     const {content, roomId} = req.body
+//     const user = req.user
+
+//     //  // 1. check user is authenticated
+//     if(!user) throw new UnauthenticatedError("Unauthorized")
+    
+//     if(!content || !content.trim()) return res.status(StatusCodes.BAD_REQUEST).json({ success: false, message: "Message cannot be empty" });
+//     if(content.length > 400) return res.status(StatusCodes.BAD_REQUEST).json({ success: false, message: "Message too long" });
+//     if(!roomId) return res.status(StatusCodes.BAD_REQUEST).json({ success: false, message: "roomId is required" });
+    
+//     // roomId is coming from the client interface. roomId is the name of the group chat
+    
+//         const message = await Messages.create({
+//             roomId,
+//             sender:{
+//                 userId: user.userId,
+//                 username: user.name,
+//                 avatar: user.avatar
+//             }
+//         })
+//     console.log("Active message:", message);
+//     // Your chat system logic here
+//     res.status(StatusCodes.OK).json(
+//         { 
+//         success: true, 
+//         result: "Message created",
+//          data:message });
+// }
 
 export { getMessages, deleteMessage }

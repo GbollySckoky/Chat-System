@@ -9,7 +9,17 @@ const signUp = async (req: Request, res: Response) => {
 //   } catch (error: any) {
 //     res.status(500).json({ message: error.message });
 //   }
-const user = await Auth.create({...req.body});
+ // Validate first, before touching the DB
+ const { name, email, password } = req.body;
+
+  if(!name) return res.status(StatusCodes.BAD_REQUEST).json({ success: false, message: "Please provide name" });
+  if(!email) return res.status(StatusCodes.BAD_REQUEST).json({ success: false, message: "Please provide email" });
+  if(!password) return res.status(StatusCodes.BAD_REQUEST).json({ success: false, message: "Please provide password" });
+  if(password.length < 6) return res.status(StatusCodes.BAD_REQUEST).json({ success: false, message: "Password must be at least 6 characters" });
+  if(name.length < 3 || name.length > 50) return res.status(StatusCodes.BAD_REQUEST).json({ success: false, message: "Name must be between 3 and 50 characters" });
+
+const user = await Auth.create({name, email, password});
+
 console.log("user:", user);
 const token = user.createJWT();
 console.log("token:", token);
@@ -27,6 +37,7 @@ if (!email || !password) {
 
 // To verify the login or if the user exits
 const user = await Auth.findOne({ email });
+console.log("user:", user);
  // if user info is wrong || if user is not authorized
 if (!user) {
     throw new UnauthenticatedError("Invalid Credentials");
@@ -34,12 +45,14 @@ if (!user) {
 
 // check if password is correct
 const isPasswordCorrect = await user.comparePassword(password);
+console.log("isPasswordCorrect:", isPasswordCorrect);
 if (!isPasswordCorrect) {
     throw new UnauthenticatedError("Invalid Credentials");
 }
 
 // check if password is correct, then create token
 const token = user.createJWT();
+console.log("token:", token);
 res.status(StatusCodes.OK).json({ user: { name: user.name }, token });
 }
 
