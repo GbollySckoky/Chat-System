@@ -65,14 +65,14 @@ AuthSchema.pre('save', async function (next) {
 });
 
 
-// process.env.JWT_SECRET u still need to look into the all keys generator
+// process.env.JWT_SECRET_KEY u still need to look into the all keys generator
 // This function creates a JWT (JSON Web Token) for a user. Here's a breakdown:
 // In simple terms — after a user signs up or logs in, you call user.createJWT() and send the token back to the client. 
 // The client stores it and sends it with every request to prove they're logged in, instead of sending their 
 // password every time.
 AuthSchema.methods.createJWT = function () {
     return jwt.sign({ userId: this._id, name: this.name }, 
-        process.env.JWT_SECRET as string, 
+        process.env.JWT_SECRET_KEY as string, 
         { expiresIn: process.env.JWT_LIFETIME as any }
     );
 }

@@ -5,9 +5,9 @@ import authMiddleware  from '../middleware/authentication'
 const router = Router()
 
 // GET /api/messages/:roomId  — fetch message history for a room
-router.get('/:roomId', authMiddleware, getMessages)
+router.get('/:roomId', getMessages)
 
 // DELETE /api/messages/:messageId  — delete a message
-router.delete('/:messageId', authMiddleware, deleteMessage)
+router.delete('/:messageId', deleteMessage)
 
 export default router
