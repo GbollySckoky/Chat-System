@@ -39,4 +39,4 @@ const errorHandlerMiddleware = (err: any, req: Request, res: Response, next: Nex
   return res.status(customError.statusCode).json({ msg: customError.msg })
 }
 
-module.exports = errorHandlerMiddleware
+export default errorHandlerMiddleware
