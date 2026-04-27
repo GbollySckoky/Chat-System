@@ -18,6 +18,7 @@ declare module "express-serve-static-core" {
     user?: {
       userId: string;
       name: string;
+      avatar?: string
     };
   }
 }

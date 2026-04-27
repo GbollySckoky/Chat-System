@@ -21,6 +21,7 @@ interface IAuth extends Document {
     password: string;
     createJWT: () => string;
     comparePassword: (candidatePassword: string) => Promise<boolean>;
+    avatar?: string;
 }
 
 
@@ -29,7 +30,8 @@ const AuthSchema = new mongoose.Schema<IAuth>({
         type: String,
         required: [true, 'Name is required'],
         minLength: 3,
-        maxLength: 50
+        maxLength: 50,
+        unique: false
     },
     email:{
         type: String,
@@ -44,6 +46,10 @@ const AuthSchema = new mongoose.Schema<IAuth>({
         type: String,
         require: [true, 'Please provide a password'],
         minLength: 6
+    },
+    avatar: {
+        type: String,
+        default: null
     }
 });
 
