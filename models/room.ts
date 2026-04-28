@@ -28,6 +28,10 @@ const RoomSchema = new mongoose.Schema<IRoom>({
     createdBy: {
         type: String, // userId of the creator
         required: true
+    },
+    description: {
+        type: String,
+        maxLength: 500
     }
 },
     {

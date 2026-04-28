@@ -43,6 +43,8 @@ import cors from "cors"; // Cross-Origin Resource Sharing
 import morgan from "morgan"; // HTTP request logger
 import rateLimit from "express-rate-limit"; // Limits repeated requests to prevent abuse
 import jwt from "jsonwebtoken";
+const swaggerUi = require("swagger-ui-express") // shows docs
+import swaggerSpec from "./swagger";
 
 // ─── App imports ──────────────────────────────────────────────────────────────
 import connectDB from "./db/connect";
@@ -145,6 +147,7 @@ io.on("connection", (socket: AuthSocket) => {
 // EXPRESS MIDDLEWARE STACK
 // Order matters — middleware runs top to bottom on every request
 // ============================================================
+app.set('trust proxy', 1);
 
 // 1. Security headers
 // Helmet sets ~15 HTTP headers that protect against common attacks
@@ -199,6 +202,9 @@ app.get("/health", (_req: Request, res: Response) => {
     timestamp: new Date().toISOString(),
   });
 });
+
+// swagger docs route
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Auth routes — login, register, refresh token, etc.
 // authRateLimiter applied specifically here because these are sensitive
