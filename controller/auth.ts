@@ -4,6 +4,8 @@ import { Request, Response } from 'express'
 import UnauthenticatedError from "../errors/unauthenticated";
 import BadRequestError from "../errors/bad-request";
 
+
+
 const signUp = async (req: Request, res: Response) => {
 //     res.status(201).json({ message: "User created successfully" });
 //   } catch (error: any) {

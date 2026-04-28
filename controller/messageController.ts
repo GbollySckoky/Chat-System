@@ -2,6 +2,7 @@ import { NextFunction, Response, Request } from "express"
 import { StatusCodes } from "http-status-codes";
 import Messages from "../models/message";
 import { AuthRequest } from "../interface/authRequest";
+import Room from "../models/room";
 
 
 /**
@@ -191,7 +192,50 @@ return saved message to client
 //          data:message });
 // }
 
-
+/**
+ * @swagger
+ * /api/messages/{roomId}:
+ *   get:
+ *     summary: Get messages for a specific chat room
+ *     tags: [Messages]
+ *     parameters:
+ *       - in: path
+ *         name: roomId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID of the chat room to fetch messages from
+ *       - in: query
+ *         name: sender
+ *         schema:
+ *           type: string
+ *         description: Filter messages by sender username (optional)
+ *       - in: query
+ *         name: content
+ *         schema:
+ *           type: string
+ *         description: Filter messages by content keywords (optional)
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Page number for pagination (optional)
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 50
+ *           maximum: 100
+ *         description: Number of messages per page (max 100)
+ *     responses:
+ *       200:
+ *         description: A list of messages with pagination info
+ *       401:
+ *         description: Unauthorized (e.g., not logged in)
+ *       500:
+ *         description: Internal server error
+ */
 const getMessages = async (req: Request, res: Response, next: NextFunction) => {
     const { roomId } = req.params;
     const { sender, content, page = '1', limit = '50' } = req.query;
@@ -228,7 +272,34 @@ const getMessages = async (req: Request, res: Response, next: NextFunction) => {
         }
     });
 }
-
+/**
+ * @swagger
+ * /api/rooms:
+ *   get:
+ *     summary: Get a list of chat rooms
+ *     tags: [Rooms]
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Page number for pagination
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 50
+ *           maximum: 100
+ *         description: Number of rooms per page (max 100)
+ *     responses:
+ *       200:
+ *         description: A list of chat rooms with pagination info
+ *       401:
+ *         description: Unauthorized (e.g., not logged in)
+ *       500:
+ *         description: Internal server error
+ */
 const getRooms = async (req: Request, res: Response, next: NextFunction) => {
     // Your chat system logic here
     /**
@@ -254,25 +325,87 @@ const getRooms = async (req: Request, res: Response, next: NextFunction) => {
      * It returns an array of results in the same order you passed them in — so rooms gets the first result, total gets the second.
      * Simple rule — whenever you have two or more await calls that don't depend on each other, use Promise.all.
      */
-    
+
     const [room, totalRooms] = await Promise.all([
-        Messages.find({ deletedAt: null }).sort({ createdAt: -1 }),
-        Messages.countDocuments({ deletedAt: null })
+        Room.find({ deletedAt: null }).sort({ createdAt: -1 }),
+        Room.countDocuments({ deletedAt: null })
     ]);
 
     res.status(StatusCodes.OK).json({ success: true, data: room, total: totalRooms });
 }
 
+/**
+ * @swagger
+ * /api/rooms:
+ *   post:
+ *     summary: Create a new chat room
+ *     tags: [Rooms]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/CreateRoom'
+ *     responses:
+ *       201:
+ *         description: Room created successfully
+ *       400:
+ *         description: Bad request (e.g., missing fields, invalid data)
+ *       401:
+ *         description: Unauthorized (e.g., not logged in)
+ *       500:
+ *         description: Internal server error
+ */
 const createRoom = async (req: AuthRequest, res: Response, next: NextFunction) => {
     // Your chat system logic here
-    const { name } = req.body;
+    const { name, description } = req.body;
     const userId = req.user?.userId;
    
     if (!name || !name.trim()) return res.status(StatusCodes.BAD_REQUEST).json({ success: false, message: "Room name is required" });
     if(!userId) return res.status(StatusCodes.UNAUTHORIZED).json({ success: false, message: "Unauthorized" });
 
-    const newRoom = await Messages.create({ name, createdBy: userId, participants: [userId] });
+    const newRoom = await Room.create({ name, description, createdBy: userId, participants: [userId] });
     res.status(StatusCodes.CREATED).json({ success: true, message: "Room created", data: newRoom });
 }
 
-export { getMessages, getRooms, createRoom }
+/**
+ * @swagger
+ * /api/rooms/{roomId}:
+ *   delete:
+ *     summary: Delete a chat room
+ *     tags: [Rooms]
+ *     parameters:
+ *       - in: path
+ *         name: roomId
+ *         required: true
+ *         schema:
+ *           $ref: '#/components/schemas/deleteRoom'
+ *     responses:
+ *       200:
+ *         description: Room deleted successfully
+ *       400:
+ *         description: Bad request (e.g., missing roomId)
+ *       401:
+ *         description: Unauthorized (e.g., not logged in or not the creator)
+ *       404:
+ *         description: Room not found
+ *       500:
+ *         description: Internal server error
+ */
+const deleteRoom = async (req: AuthRequest, res: Response, next: NextFunction) => {
+    // Your chat system logic here
+    const { roomId } = req.params;
+    const userId = req.user?.userId;
+
+    if (!roomId) return res.status(StatusCodes.BAD_REQUEST).json({ success: false, message: "roomId is required" });
+    if (!userId) return res.status(StatusCodes.UNAUTHORIZED).json({ success: false, message: "Unauthorized" });
+
+    const room = await Room.findById(roomId);
+    if (!room) return res.status(StatusCodes.NOT_FOUND).json({ success: false, message: "Room not found" });
+    if (room.createdBy !== userId) return res.status(StatusCodes.UNAUTHORIZED).json({ success: false, message: "Unauthorized" });
+
+    room.deletedAt = new Date();
+    await room.save();
+    res.status(StatusCodes.OK).json({ success: true, message: "Room deleted" });
+}
+export { getMessages, getRooms, createRoom, deleteRoom }
