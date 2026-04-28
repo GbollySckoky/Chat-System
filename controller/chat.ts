@@ -2,6 +2,25 @@ import type { Server as SocketServer } from "socket.io";
 import { AuthSocket, SendMessagePayload } from "../interface/authSocket";
 import Messages from "../models/message";
 
+/**
+ * For a chat system, the best practice is:
+HTTP for — anything that is a resource operation:
+
+POST /rooms — create room
+GET /rooms — list rooms
+DELETE /rooms/:roomId — delete room
+GET /messages/:roomId — fetch message history
+DELETE /messages/:messageId — delete message
+
+WebSocket for — anything real-time:
+
+sendMessage
+joinRoom
+leaveRoom
+typing... indicators
+Online/offline presence
+ */
+
 const roomPresence = new Map<string, Set<{ userId: string; username: string; avatar?: string; socketId: string }>>();
 
 const getPresenceList = (roomId: string) =>
