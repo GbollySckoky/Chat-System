@@ -2,7 +2,26 @@ import { NextFunction, Response, Request } from "express"
 import { StatusCodes } from "http-status-codes";
 import Messages from "../models/message";
 import { AuthRequest } from "../interface/authRequest";
-import { UnauthenticatedError } from "../errors";
+
+
+/**
+ * For a chat system, the best practice is:
+HTTP for — anything that is a resource operation:
+
+POST /rooms — create room
+GET /rooms — list rooms
+DELETE /rooms/:roomId — delete room
+GET /messages/:roomId — fetch message history
+DELETE /messages/:messageId — delete message
+
+WebSocket for — anything real-time:
+
+sendMessage
+joinRoom
+leaveRoom
+typing... indicators
+Online/offline presence
+ */
 
 // Check README.MD for details on how to implement the getChat function.
 /**
@@ -29,66 +48,66 @@ import { UnauthenticatedError } from "../errors";
  */
 
 
-const getMessages = async (req: Request, res: Response) => {
-    // Your chat system logic here
-    const { userId, roomId, sender, content } = req.query ; // Extract any query parameters if needed
+// const getMessages = async (req: Request, res: Response) => {
+//     // Your chat system logic here
+//     const { userId, roomId, sender, content } = req.query ; // Extract any query parameters if needed
 
-    /**
-     * MongoDB query construction based on provided parameters. 
-     * This allows for flexible querying of messages based on userId, roomId, sender username, or content. 
-     * The use of regex for content allows for partial matches and case-insensitive searching.
-     * With the roomid parameter you can fetch messages specific to a chat room, 
-     * without the roomId chats will not be sorted well and it will be hard to fetch messages for a specific room.
-     */
-    // const {roomId: roomIdParam} = req.params; // Extract roomId from URL parameters if needed
+//     /**
+//      * MongoDB query construction based on provided parameters. 
+//      * This allows for flexible querying of messages based on userId, roomId, sender username, or content. 
+//      * The use of regex for content allows for partial matches and case-insensitive searching.
+//      * With the roomid parameter you can fetch messages specific to a chat room, 
+//      * without the roomId chats will not be sorted well and it will be hard to fetch messages for a specific room.
+//      */
+//     // const {roomId: roomIdParam} = req.params; // Extract roomId from URL parameters if needed
 
-    if(!roomId) return res.status(StatusCodes.BAD_REQUEST).json({ success: false, message: "roomId is required" });
+//     if(!roomId) return res.status(StatusCodes.BAD_REQUEST).json({ success: false, message: "roomId is required" });
     
-    const queryObject: Record<string, any> = {};
+//     const queryObject: Record<string, any> = {};
 
-    if (userId) {
-        queryObject.userId = userId;
-    }
+//     if (userId) {
+//         queryObject.userId = userId;
+//     }
 
-    if (roomId) {
-        queryObject.roomId = roomId;
-    } 
-    if (sender) {
-        queryObject['sender.username'] = sender;
-    }
-    /**
-     * $regex lets you search for messages that contain a word, not just exact matches.
-     * $options: 'i' makes the search case-insensitive, so "Hello" and "hello" will both match.
-     * This is useful for a chat system where users might want to search for messages containing certain keywords without 
-     * worrying about exact case or full matches.
-     * 
-     * For example, if a user searches for "hello", it will return messages that contain "Hello", "hello", "HELLO", etc., 
-     * as long as "hello" is part of the message content. This enhances the search functionality and user experience in the chat system.
-     * 
-     * Without the content filter, users would only be able to search for messages that exactly match the content they provide,
-     * which can be limiting and less user-friendly in a chat environment where messages often contain more than just the search term.
-     * 
-     *  */ 
-    if (content) {
-        queryObject.content = { $regex: content, $options: 'i' }; // Case-insensitive search
-    }
-    // Fetch messages based on the queryObject
-    try {
-        /**
-         * .sort({ createdAt: -1 })  // newest message at the top
-         * .sort({ createdAt: 1 })   // oldest message at the top
-         * .sort({ createdAt: -1 })
-         * Orders the results by createdAt.
-         * -1 means newest first (descending)
-         * 1 means oldest first (ascending)
-         */
-        const messages = await Messages.find(queryObject).sort({ createdAt: -1 }).limit(50); // Example: fetch latest 50 messages
-        res.status(StatusCodes.OK).json({ success: true, data: messages });
-    } catch (error) {
-        console.error("Error fetching messages:", error);
-        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ success: false, message: "Server Error" });
-    }
-}
+//     if (roomId) {
+//         queryObject.roomId = roomId;
+//     } 
+//     if (sender) {
+//         queryObject['sender.username'] = sender;
+//     }
+//     /**
+//      * $regex lets you search for messages that contain a word, not just exact matches.
+//      * $options: 'i' makes the search case-insensitive, so "Hello" and "hello" will both match.
+//      * This is useful for a chat system where users might want to search for messages containing certain keywords without 
+//      * worrying about exact case or full matches.
+//      * 
+//      * For example, if a user searches for "hello", it will return messages that contain "Hello", "hello", "HELLO", etc., 
+//      * as long as "hello" is part of the message content. This enhances the search functionality and user experience in the chat system.
+//      * 
+//      * Without the content filter, users would only be able to search for messages that exactly match the content they provide,
+//      * which can be limiting and less user-friendly in a chat environment where messages often contain more than just the search term.
+//      * 
+//      *  */ 
+//     if (content) {
+//         queryObject.content = { $regex: content, $options: 'i' }; // Case-insensitive search
+//     }
+//     // Fetch messages based on the queryObject
+//     try {
+//         /**
+//          * .sort({ createdAt: -1 })  // newest message at the top
+//          * .sort({ createdAt: 1 })   // oldest message at the top
+//          * .sort({ createdAt: -1 })
+//          * Orders the results by createdAt.
+//          * -1 means newest first (descending)
+//          * 1 means oldest first (ascending)
+//          */
+//         const messages = await Messages.find(queryObject).sort({ createdAt: -1 }).limit(50); // Example: fetch latest 50 messages
+//         res.status(StatusCodes.OK).json({ success: true, data: messages });
+//     } catch (error) {
+//         console.error("Error fetching messages:", error);
+//         res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ success: false, message: "Server Error" });
+//     }
+// }
 
 /** DELETE MESSAGE FLOW
  * client has a message on screen
@@ -105,31 +124,31 @@ const getMessages = async (req: Request, res: Response) => {
     if no  → return unauthorized
  */
 
-const deleteMessage = async (req: AuthRequest, res: Response) => {
-    const { messageId } = req.params;
-    const userId = req?.user?.userId; // Assuming you have userId from authentication middleware
+// const deleteMessage = async (req: AuthRequest, res: Response) => {
+//     const { messageId } = req.params;
+//     const userId = req?.user?.userId; // Assuming you have userId from authentication middleware
 
-    // you defined deletedAt in the schema
-    //     ↓
-    // every new message gets deletedAt: null by default
-    //         ↓
-    // when someone deletes a message
-    //         ↓
-    // you set deletedAt = new Date()  ← stamps it with current time
-    //         ↓
-    // pre('find') hook sees deletedAt is not null
-    //         ↓
-    // filters it out of all queries
+//     // you defined deletedAt in the schema
+//     //     ↓
+//     // every new message gets deletedAt: null by default
+//     //         ↓
+//     // when someone deletes a message
+//     //         ↓
+//     // you set deletedAt = new Date()  ← stamps it with current time
+//     //         ↓
+//     // pre('find') hook sees deletedAt is not null
+//     //         ↓
+//     // filters it out of all queries
 
-    if (!messageId) return res.status(StatusCodes.BAD_REQUEST).json({ success: false, message: "messageId is required" });
-    const result = await Messages.findById(messageId);
-    if (!result) return res.status(StatusCodes.NOT_FOUND).json({ success: false, message: "Message not found" });
-    if (result.sender.userId !== userId) return res.status(StatusCodes.UNAUTHORIZED).json({ success: false, message: "Unauthorized" });
+//     if (!messageId) return res.status(StatusCodes.BAD_REQUEST).json({ success: false, message: "messageId is required" });
+//     const result = await Messages.findById(messageId);
+//     if (!result) return res.status(StatusCodes.NOT_FOUND).json({ success: false, message: "Message not found" });
+//     if (result.sender.userId !== userId) return res.status(StatusCodes.UNAUTHORIZED).json({ success: false, message: "Unauthorized" });
 
-    result.deletedAt = new Date();
-    await result.save();
-    res.status(StatusCodes.OK).json({ success: true, message: "Message deleted" });
-}
+//     result.deletedAt = new Date();
+//     await result.save();
+//     res.status(StatusCodes.OK).json({ success: true, message: "Message deleted" });
+// }
 
 /**
  * client sends { content, roomId } in req.body
@@ -172,4 +191,88 @@ return saved message to client
 //          data:message });
 // }
 
-export { getMessages, deleteMessage }
+
+const getMessages = async (req: Request, res: Response, next: NextFunction) => {
+    const { roomId } = req.params;
+    const { sender, content, page = '1', limit = '50' } = req.query;
+
+    const queryObject: Record<string, any> = {
+        roomId,
+        deletedAt: null,
+    };
+
+    if (sender) queryObject['sender.username'] = sender;
+    if (content) queryObject.content = { $regex: content, $options: 'i' };
+
+    const pageNum = Math.max(1, parseInt(page as string));
+    const limitNum = Math.min(100, parseInt(limit as string));
+    const skip = (pageNum - 1) * limitNum;
+
+    const [messages, total] = await Promise.all([
+        Messages.find(queryObject)
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limitNum),
+        Messages.countDocuments(queryObject)
+    ]);
+
+    res.status(StatusCodes.OK).json({
+        success: true,
+        data: messages,
+        pagination: {
+            page: pageNum,
+            limit: limitNum,
+            total,
+            totalPages: Math.ceil(total / limitNum),
+            hasMore: pageNum * limitNum < total
+        }
+    });
+}
+
+const getRooms = async (req: Request, res: Response, next: NextFunction) => {
+    // Your chat system logic here
+    /**
+     * deletedAt: null
+     * It filters out soft-deleted rooms. When someone deletes a room you don't actually remove it from the DB — you just 
+     * stamp it with a date:
+     * 
+     * Promise.all
+     * It runs multiple async operations at the same time instead of one after another.
+     * 
+     * Without it:
+     * const rooms = await Room.find(...)        // waits 100ms
+     * const total = await Room.countDocuments() // then waits another 100ms
+     * // total time: 200ms
+     * 
+     * With it:
+     * const [rooms, total] = await Promise.all([
+     * Room.find(...),          // both run
+     * Room.countDocuments()    // simultaneously
+     * ]) // total time: ~100ms
+     * 
+     * Both DB queries fire at the same time and it waits until both finish before continuing. 
+     * It returns an array of results in the same order you passed them in — so rooms gets the first result, total gets the second.
+     * Simple rule — whenever you have two or more await calls that don't depend on each other, use Promise.all.
+     */
+    
+    const [room, totalRooms] = await Promise.all([
+        Messages.find({ deletedAt: null }).sort({ createdAt: -1 }),
+        Messages.countDocuments({ deletedAt: null })
+    ]);
+
+    res.status(StatusCodes.OK).json({ success: true, data: room, total: totalRooms });
+}
+
+const createRoom = async (req: AuthRequest, res: Response, next: NextFunction) => {
+    // Your chat system logic here
+    const { name } = req.body;
+    const userId = req.user?.userId;
+   
+    if (!name || !name.trim()) return res.status(StatusCodes.BAD_REQUEST).json({ success: false, message: "Room name is required" });
+    if(!userId) return res.status(StatusCodes.UNAUTHORIZED).json({ success: false, message: "Unauthorized" });
+
+    const newRoom = await Messages.create({ name, createdBy: userId, participants: [userId] });
+    res.status(StatusCodes.CREATED).json({ success: true, message: "Room created", data: newRoom });
+}
+
+export { getMessages, getRooms, createRoom }

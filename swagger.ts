@@ -1,5 +1,4 @@
 "use strict"
-
 const swaggerJSDoc = require("swagger-jsdoc")
 const swaggerUi = require("swagger-ui-express")
 
@@ -54,8 +53,60 @@ const options = {
                     example: 'password123'
                 }
             }
+        },
+            CreateRoom: {   
+            type: 'object',
+            properties: {
+                name: {
+                    type: 'string',
+                    example: 'General Chat'
+                },
+                description: {
+                    type: 'string',
+                    example: 'A place for general discussions'
+                }
+            }
+        },
+        SendMessage: {
+            type: 'object',
+            properties: {
+                roomId: {
+                    type: 'string',
+                    example: '60d0fe4f5311236168a109ca'
+                },
+                content: {
+                    type: 'string',
+                    example: 'Hello, everyone!'
+                },
+                type: {
+                    type: 'string',
+                    enum: ['text', 'image', 'file'],
+                    example: 'text'
+                }
+            }
+        },
+            UpdateMessage: {
+            type: 'object',
+            properties: {
+                messageId: {
+                    type: 'string',
+                    example: '60d0fe4f5311236168a109cb'
+                },
+                content: {
+                    type: 'string',
+                    example: 'Updated message content'
+                }
+            }
+        },
+        deleteMessage:{
+            type: 'object',
+            properties: {
+                messageId: {
+                    type: 'string',
+                    example: '60d0fe4f5311236168a109cb'
+                }
+            }
         }
-    }
     },
     security: [
       {
@@ -64,6 +115,7 @@ const options = {
     ],
   },
   apis: ["./routes/*.ts"], // where your route docs live
+}
 }
 
 const swaggerSpec = swaggerJSDoc(options)
