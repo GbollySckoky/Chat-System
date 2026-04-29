@@ -12,11 +12,10 @@ const router = Router();
 
 /**
  * @swagger
- * /auth/sign-up:
+ * /api/v1/auth/sign-up:
  *   post:
  *     summary: Register a new user
  *     tags: [Auth]
- *     security: []
  *     requestBody:
  *       required: true
  *       content:
@@ -37,11 +36,10 @@ router.route('/sign-up').post(signUp)
 
 /**
  * @swagger
- * /auth/login:
+ * /api/v1/auth/login:
  *   post:
  *     summary: User login
  *     tags: [Auth]
- *     security: []
  *     requestBody:
  *       required: true
  *       content:

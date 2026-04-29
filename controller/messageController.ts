@@ -125,31 +125,31 @@ Online/offline presence
     if no  → return unauthorized
  */
 
-// const deleteMessage = async (req: AuthRequest, res: Response) => {
-//     const { messageId } = req.params;
-//     const userId = req?.user?.userId; // Assuming you have userId from authentication middleware
+const deleteMessage = async (req: AuthRequest, res: Response) => {
+    const { messageId } = req.params;
+    const userId = req?.user?.userId; // Assuming you have userId from authentication middleware
 
-//     // you defined deletedAt in the schema
-//     //     ↓
-//     // every new message gets deletedAt: null by default
-//     //         ↓
-//     // when someone deletes a message
-//     //         ↓
-//     // you set deletedAt = new Date()  ← stamps it with current time
-//     //         ↓
-//     // pre('find') hook sees deletedAt is not null
-//     //         ↓
-//     // filters it out of all queries
+    // you defined deletedAt in the schema
+    //     ↓
+    // every new message gets deletedAt: null by default
+    //         ↓
+    // when someone deletes a message
+    //         ↓
+    // you set deletedAt = new Date()  ← stamps it with current time
+    //         ↓
+    // pre('find') hook sees deletedAt is not null
+    //         ↓
+    // filters it out of all queries
 
-//     if (!messageId) return res.status(StatusCodes.BAD_REQUEST).json({ success: false, message: "messageId is required" });
-//     const result = await Messages.findById(messageId);
-//     if (!result) return res.status(StatusCodes.NOT_FOUND).json({ success: false, message: "Message not found" });
-//     if (result.sender.userId !== userId) return res.status(StatusCodes.UNAUTHORIZED).json({ success: false, message: "Unauthorized" });
+    if (!messageId) return res.status(StatusCodes.BAD_REQUEST).json({ success: false, message: "messageId is required" });
+    const result = await Messages.findById(messageId);
+    if (!result) return res.status(StatusCodes.NOT_FOUND).json({ success: false, message: "Message not found" });
+    if (result.sender.userId !== userId) return res.status(StatusCodes.UNAUTHORIZED).json({ success: false, message: "Unauthorized" });
 
-//     result.deletedAt = new Date();
-//     await result.save();
-//     res.status(StatusCodes.OK).json({ success: true, message: "Message deleted" });
-// }
+    result.deletedAt = new Date();
+    await result.save();
+    res.status(StatusCodes.OK).json({ success: true, message: "Message deleted" });
+}
 
 /**
  * client sends { content, roomId } in req.body
@@ -408,4 +408,4 @@ const deleteRoom = async (req: AuthRequest, res: Response, next: NextFunction) =
     await room.save();
     res.status(StatusCodes.OK).json({ success: true, message: "Room deleted" });
 }
-export { getMessages, getRooms, createRoom, deleteRoom }
+export { getMessages, getRooms, createRoom, deleteRoom, deleteMessage }

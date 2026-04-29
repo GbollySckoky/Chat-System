@@ -24,7 +24,7 @@ const options = {
         CreateUser: {
           type: 'object',
           properties: {
-            username: { type: 'string', example: 'johndoe' },
+            name: { type: 'string', example: 'johndoe' },
             email: { type: 'string', example: 'johndoe@gmail.com' },
             password: { type: 'string', example: 'password123' }
           }
@@ -66,12 +66,24 @@ const options = {
             roomId: { type: 'string', example: '60d0fe4f5311236168a109ca' },
             name: { type: 'string', example: 'General Chat' }
           }
-        }
+        },
+        deleteMessage: {
+          type: 'object',
+          properties: {
+            messageId: { type: 'string', example: '60d0fe4f5311236168a109ca' }
+          }
+        },
+         deleteRoom: {
+            type: 'object',
+            properties: {
+              roomId: { type: 'string', example: '60d0fe4f5311236168a109ca' }
+            }
+          }
       },
     },
     security: [{ bearerAuth: [] }],
   },
-  apis: ["./routes/**/*.ts"],  // ✅ apis is outside definition, inside options
+  apis: ["./route/**/*.ts"],  // ✅ apis is outside definition, inside options
 }
 
 const swaggerSpec = swaggerJSDoc(options)
