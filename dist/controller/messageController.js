@@ -1,13 +1,4 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -126,10 +117,9 @@ Online/offline presence
     if yes → soft delete it
     if no  → return unauthorized
  */
-const deleteMessage = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
+const deleteMessage = async (req, res) => {
     const { messageId } = req.params;
-    const userId = (_a = req === null || req === void 0 ? void 0 : req.user) === null || _a === void 0 ? void 0 : _a.userId; // Assuming you have userId from authentication middleware
+    const userId = req?.user?.userId; // Assuming you have userId from authentication middleware
     // you defined deletedAt in the schema
     //     ↓
     // every new message gets deletedAt: null by default
@@ -143,15 +133,15 @@ const deleteMessage = (req, res) => __awaiter(void 0, void 0, void 0, function* 
     // filters it out of all queries
     if (!messageId)
         return res.status(http_status_codes_1.StatusCodes.BAD_REQUEST).json({ success: false, message: "messageId is required" });
-    const result = yield message_1.default.findById(messageId);
+    const result = await message_1.default.findById(messageId);
     if (!result)
         return res.status(http_status_codes_1.StatusCodes.NOT_FOUND).json({ success: false, message: "Message not found" });
     if (result.sender.userId !== userId)
         return res.status(http_status_codes_1.StatusCodes.UNAUTHORIZED).json({ success: false, message: "Unauthorized" });
     result.deletedAt = new Date();
-    yield result.save();
+    await result.save();
     res.status(http_status_codes_1.StatusCodes.OK).json({ success: true, message: "Message deleted" });
-});
+};
 exports.deleteMessage = deleteMessage;
 /**
  * client sends { content, roomId } in req.body
@@ -233,7 +223,7 @@ return saved message to client
  *       500:
  *         description: Internal server error
  */
-const getMessages = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+const getMessages = async (req, res, next) => {
     const { roomId } = req.params;
     const { sender, content, page = '1', limit = '50' } = req.query;
     const queryObject = {
@@ -247,7 +237,7 @@ const getMessages = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
     const pageNum = Math.max(1, parseInt(page));
     const limitNum = Math.min(100, parseInt(limit));
     const skip = (pageNum - 1) * limitNum;
-    const [messages, total] = yield Promise.all([
+    const [messages, total] = await Promise.all([
         message_1.default.find(queryObject)
             .sort({ createdAt: -1 })
             .skip(skip)
@@ -265,7 +255,7 @@ const getMessages = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
             hasMore: pageNum * limitNum < total
         }
     });
-});
+};
 exports.getMessages = getMessages;
 /**
  * @swagger
@@ -295,7 +285,7 @@ exports.getMessages = getMessages;
  *       500:
  *         description: Internal server error
  */
-const getRooms = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+const getRooms = async (req, res, next) => {
     // Your chat system logic here
     /**
      * deletedAt: null
@@ -320,12 +310,12 @@ const getRooms = (req, res, next) => __awaiter(void 0, void 0, void 0, function*
      * It returns an array of results in the same order you passed them in — so rooms gets the first result, total gets the second.
      * Simple rule — whenever you have two or more await calls that don't depend on each other, use Promise.all.
      */
-    const [room, totalRooms] = yield Promise.all([
+    const [room, totalRooms] = await Promise.all([
         room_1.default.find({ deletedAt: null }).sort({ createdAt: -1 }),
         room_1.default.countDocuments({ deletedAt: null })
     ]);
     res.status(http_status_codes_1.StatusCodes.OK).json({ success: true, data: room, total: totalRooms });
-});
+};
 exports.getRooms = getRooms;
 /**
  * @swagger
@@ -349,18 +339,17 @@ exports.getRooms = getRooms;
  *       500:
  *         description: Internal server error
  */
-const createRoom = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
+const createRoom = async (req, res, next) => {
     // Your chat system logic here
     const { name, description } = req.body;
-    const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.userId;
+    const userId = req.user?.userId;
     if (!name || !name.trim())
         return res.status(http_status_codes_1.StatusCodes.BAD_REQUEST).json({ success: false, message: "Room name is required" });
     if (!userId)
         return res.status(http_status_codes_1.StatusCodes.UNAUTHORIZED).json({ success: false, message: "Unauthorized" });
-    const newRoom = yield room_1.default.create({ name, description, createdBy: userId, participants: [userId] });
+    const newRoom = await room_1.default.create({ name, description, createdBy: userId, participants: [userId] });
     res.status(http_status_codes_1.StatusCodes.CREATED).json({ success: true, message: "Room created", data: newRoom });
-});
+};
 exports.createRoom = createRoom;
 /**
  * @swagger
@@ -386,22 +375,21 @@ exports.createRoom = createRoom;
  *       500:
  *         description: Internal server error
  */
-const deleteRoom = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
+const deleteRoom = async (req, res, next) => {
     // Your chat system logic here
     const { roomId } = req.params;
-    const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.userId;
+    const userId = req.user?.userId;
     if (!roomId)
         return res.status(http_status_codes_1.StatusCodes.BAD_REQUEST).json({ success: false, message: "roomId is required" });
     if (!userId)
         return res.status(http_status_codes_1.StatusCodes.UNAUTHORIZED).json({ success: false, message: "Unauthorized" });
-    const room = yield room_1.default.findById(roomId);
+    const room = await room_1.default.findById(roomId);
     if (!room)
         return res.status(http_status_codes_1.StatusCodes.NOT_FOUND).json({ success: false, message: "Room not found" });
     if (room.createdBy !== userId)
         return res.status(http_status_codes_1.StatusCodes.UNAUTHORIZED).json({ success: false, message: "Unauthorized" });
     room.deletedAt = new Date();
-    yield room.save();
+    await room.save();
     res.status(http_status_codes_1.StatusCodes.OK).json({ success: true, message: "Room deleted" });
-});
+};
 exports.deleteRoom = deleteRoom;

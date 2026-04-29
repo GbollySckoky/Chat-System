@@ -14,19 +14,9 @@
  *  7. Handling graceful shutdown
  * ============================================================
  */
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
-var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.io = void 0;
 // ─── Load env vars FIRST before any other imports ────────────────────────────
@@ -56,7 +46,6 @@ const express_rate_limit_1 = __importDefault(require("express-rate-limit")); // 
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const swaggerUi = require("swagger-ui-express"); // shows docs
 const swaggerSpec = require("./swagger");
-// ─── App imports ──────────────────────────────────────────────────────────────
 const connect_1 = __importDefault(require("./db/connect"));
 const auth_1 = __importDefault(require("./route/auth"));
 const message_1 = __importDefault(require("./route/message"));
@@ -68,7 +57,7 @@ const authentication_1 = __importDefault(require("./middleware/authentication"))
 // Defined once and reused in both Express and Socket.IO
 // This prevents them from drifting out of sync over time
 const CORS_OPTIONS = {
-    origin: ((_a = process.env.CLIENT_URL) === null || _a === void 0 ? void 0 : _a.split(",")) || ["http://localhost:3000", "http://localhost:5173"],
+    origin: process.env.CLIENT_URL?.split(",") || ["http://localhost:3000", "http://localhost:5173"],
     // CLIENT_URL can be a comma-separated string in .env for multiple origins
     // e.g. CLIENT_URL="https://myapp.com,https://admin.myapp.com"
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
@@ -93,13 +82,12 @@ exports.io = new socket_io_1.Server(httpServer, {
 // This runs before EVERY socket connection is established.
 // Think of it as the bouncer at the door — no valid token, no entry.
 exports.io.use((socket, next) => {
-    var _a;
     // Token can come from two places:
     // 1. socket.handshake.auth.token — recommended (set on client: { auth: { token } })
     // 2. Authorization header — fallback for clients sending it as a header
     const authHeader = socket.handshake.headers["authorization"];
-    const token = ((_a = socket.handshake.auth) === null || _a === void 0 ? void 0 : _a.token) ||
-        ((authHeader === null || authHeader === void 0 ? void 0 : authHeader.startsWith("Bearer ")) ? authHeader.split(" ")[1] : null);
+    const token = socket.handshake.auth?.token ||
+        (authHeader?.startsWith("Bearer ") ? authHeader.split(" ")[1] : null);
     if (!token) {
         // Reject the connection immediately if no token is provided
         return next(new Error("Authentication error: No token provided"));
@@ -122,16 +110,14 @@ exports.io.use((socket, next) => {
 // ─── Socket.IO Connection Handler ─────────────────────────────────────────────
 // Fires once per successful authenticated connection
 exports.io.on("connection", (socket) => {
-    var _a;
-    console.log(`✅ ${(_a = socket.user) === null || _a === void 0 ? void 0 : _a.username} connected [${socket.id}]`);
+    console.log(`✅ ${socket.user?.username} connected [${socket.id}]`);
     // Register all chat-related event handlers for this socket
     // Keeping this in a separate file keeps server.ts clean
     (0, chat_1.registerChatHandlers)(exports.io, socket);
     // Log when a socket disconnects
     // reason tells you why: "transport close", "ping timeout", "server namespace disconnect", etc.
     socket.on("disconnect", (reason) => {
-        var _a;
-        console.log(`🔴 ${(_a = socket.user) === null || _a === void 0 ? void 0 : _a.username} disconnected — reason: ${reason}`);
+        console.log(`🔴 ${socket.user?.username} disconnected — reason: ${reason}`);
     });
 });
 // ============================================================
@@ -214,11 +200,11 @@ app.use((err, _req, res, _next) => {
 // SERVER STARTUP
 // ============================================================
 const PORT = process.env.PORT || 5000;
-const start = () => __awaiter(void 0, void 0, void 0, function* () {
+const start = async () => {
     try {
         // Connect to MongoDB before starting the server
         // If DB connection fails, we don't want to accept requests
-        yield (0, connect_1.default)(process.env.MONGO_URI);
+        await (0, connect_1.default)(process.env.MONGO_URI);
         console.log("✅ MongoDB connected");
         httpServer.listen(PORT, () => {
             console.log(`🚀 Server running on port ${PORT} [${process.env.NODE_ENV || "development"}]`);
@@ -228,7 +214,7 @@ const start = () => __awaiter(void 0, void 0, void 0, function* () {
         console.error("❌ Failed to start server:", err);
         process.exit(1); // Exit with failure code — let process manager (PM2, Docker) restart it
     }
-});
+};
 start();
 // ============================================================
 // GRACEFUL SHUTDOWN
