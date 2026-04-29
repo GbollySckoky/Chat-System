@@ -1,13 +1,4 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -33,13 +24,13 @@ typing... indicators
 Online/offline presence
  */
 const roomPresence = new Map();
-const getPresenceList = (roomId) => { var _a; return Array.from((_a = roomPresence.get(roomId)) !== null && _a !== void 0 ? _a : []); };
+const getPresenceList = (roomId) => Array.from(roomPresence.get(roomId) ?? []);
 // CHECK README.MD FOR WEBSOCKET METHODS
 function registerChatHandlers(io, socket) {
     const user = socket.user;
-    socket.on("room:join", (roomId, callback) => __awaiter(this, void 0, void 0, function* () {
+    socket.on("room:join", async (roomId, callback) => {
         try {
-            yield socket.join(roomId);
+            await socket.join(roomId);
             if (!roomPresence.has(roomId))
                 roomPresence.set(roomId, new Set());
             roomPresence.get(roomId).add({
@@ -56,23 +47,23 @@ function registerChatHandlers(io, socket) {
             console.error("Error joining room:", error);
             callback({ status: 'error', message: 'Failed to join room' });
         }
-    }));
-    socket.on("room:leave", (roomId) => __awaiter(this, void 0, void 0, function* () {
-        yield socket.leave(roomId);
+    });
+    socket.on("room:leave", async (roomId) => {
+        await socket.leave(roomId);
         removeFromPresence(roomId, socket.id);
         io.to(roomId).emit('presence:update', { roomId, users: getPresenceList(roomId) });
         console.log(`👋 ${user.username} left room: ${roomId}`);
-    }));
-    socket.on("message:send", (payload, callback) => __awaiter(this, void 0, void 0, function* () {
+    });
+    socket.on("message:send", async (payload, callback) => {
         const { roomId, content, type = 'text' } = payload;
-        if (!(content === null || content === void 0 ? void 0 : content.trim()))
+        if (!content?.trim())
             return callback({ status: 'error', message: 'Message cannot be empty' });
         if (!roomId)
             return callback({ status: 'error', message: 'roomId is required' });
         if (content.length > 4000)
             return callback({ status: 'error', message: 'Message too long' });
         try {
-            const saved = yield message_1.default.create({
+            const saved = await message_1.default.create({
                 roomId,
                 sender: { userId: user.userId, username: user.username, avatar: user.avatar },
                 content: content.trim(),
@@ -87,16 +78,16 @@ function registerChatHandlers(io, socket) {
             console.error("Error sending message:", error);
             callback({ status: 'error', message: 'Failed to send message' });
         }
-    }));
-    socket.on("message:delete", (messageId, callback) => __awaiter(this, void 0, void 0, function* () {
+    });
+    socket.on("message:delete", async (messageId, callback) => {
         try {
-            const message = yield message_1.default.findById(messageId);
+            const message = await message_1.default.findById(messageId);
             if (!message)
                 return callback({ status: 'error', message: 'Message not found' });
             if (message.sender.userId !== user.userId)
                 return callback({ status: 'error', message: 'Unauthorized' });
             message.deletedAt = new Date();
-            yield message.save();
+            await message.save();
             io.to(message.roomId).emit("message:deleted", { messageId });
             callback({ status: 'ok' });
         }
@@ -104,7 +95,7 @@ function registerChatHandlers(io, socket) {
             console.error("Error deleting message:", error);
             callback({ status: 'error', message: 'Failed to delete message' });
         }
-    }));
+    });
     socket.on("typing:start", (roomId) => {
         socket.to(roomId).emit("typing:update", {
             userId: user.userId,

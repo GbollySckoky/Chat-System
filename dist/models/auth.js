@@ -1,13 +1,4 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -45,12 +36,10 @@ const AuthSchema = new mongoose_1.default.Schema({
 });
 // module.exports = mongoose.model('Auth', Auth);
 // Hash Passsword
-AuthSchema.pre('save', function (next) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const userSalt = yield bcryptjs_1.default.genSalt(10);
-        this.password = yield bcryptjs_1.default.hash(this.password, userSalt);
-        next();
-    });
+AuthSchema.pre('save', async function (next) {
+    const userSalt = await bcryptjs_1.default.genSalt(10);
+    this.password = await bcryptjs_1.default.hash(this.password, userSalt);
+    next();
 });
 // process.env.JWT_SECRET_KEY u still need to look into the all keys generator
 // This function creates a JWT (JSON Web Token) for a user. Here's a breakdown:
@@ -60,10 +49,8 @@ AuthSchema.pre('save', function (next) {
 AuthSchema.methods.createJWT = function () {
     return jsonwebtoken_1.default.sign({ userId: this._id, name: this.name }, process.env.JWT_SECRET_KEY, { expiresIn: process.env.JWT_LIFETIME });
 };
-AuthSchema.methods.comparePassword = function (candidatePassword) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const isMatch = yield bcryptjs_1.default.compare(candidatePassword, this.password);
-        return isMatch;
-    });
+AuthSchema.methods.comparePassword = async function (candidatePassword) {
+    const isMatch = await bcryptjs_1.default.compare(candidatePassword, this.password);
+    return isMatch;
 };
 exports.default = mongoose_1.default.model('Auth', AuthSchema);

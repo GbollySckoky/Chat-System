@@ -46,7 +46,6 @@ import jwt from "jsonwebtoken";
 const swaggerUi = require("swagger-ui-express") // shows docs
 const swaggerSpec = require("./swagger"); 
 
-// ─── App imports ──────────────────────────────────────────────────────────────
 import connectDB from "./db/connect";
 import authRouter from "./route/auth";
 import messageRouter from "./route/message";
