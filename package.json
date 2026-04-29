@@ -4,8 +4,8 @@
   "main": "app.ts",
   "scripts": {
     "dev": "nodemon --exec ts-node app.ts",
-    "start": "nodemon app.ts",
     "build": "tsc",
+    "start": "nodemon app.ts",
     "start:prod": "node dist/app.js"
   },
   "keywords": [],
