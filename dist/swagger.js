@@ -1,5 +1,4 @@
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
 const swaggerJSDoc = require("swagger-jsdoc");
 const options = {
     definition: {
@@ -86,4 +85,4 @@ const options = {
     apis: ["./route/**/*.ts"], // ✅ apis is outside definition, inside options
 };
 const swaggerSpec = swaggerJSDoc(options);
-exports.default = swaggerSpec;
+module.exports = swaggerSpec;
