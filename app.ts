@@ -44,7 +44,7 @@ import morgan from "morgan"; // HTTP request logger
 import rateLimit from "express-rate-limit"; // Limits repeated requests to prevent abuse
 import jwt from "jsonwebtoken";
 const swaggerUi = require("swagger-ui-express") // shows docs
-import swaggerSpec from "./swagger";
+const swaggerSpec = require("./swagger"); 
 
 // ─── App imports ──────────────────────────────────────────────────────────────
 import connectDB from "./db/connect";
