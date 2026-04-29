@@ -43,8 +43,8 @@ import cors from "cors"; // Cross-Origin Resource Sharing
 import morgan from "morgan"; // HTTP request logger
 import rateLimit from "express-rate-limit"; // Limits repeated requests to prevent abuse
 import jwt from "jsonwebtoken";
-const swaggerUi = require("swagger-ui-express") // shows docs
-const swaggerSpec = require("./swagger"); 
+import swaggerUi from "swagger-ui-express";
+import swaggerSpec from "./swagger";
 
 import connectDB from "./db/connect";
 import authRouter from "./route/auth";
