@@ -55,7 +55,7 @@ const morgan_1 = __importDefault(require("morgan")); // HTTP request logger
 const express_rate_limit_1 = __importDefault(require("express-rate-limit")); // Limits repeated requests to prevent abuse
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const swaggerUi = require("swagger-ui-express"); // shows docs
-const swagger_1 = __importDefault(require("./swagger"));
+const swaggerSpec = require("./swagger");
 // ─── App imports ──────────────────────────────────────────────────────────────
 const connect_1 = __importDefault(require("./db/connect"));
 const auth_1 = __importDefault(require("./route/auth"));
@@ -186,7 +186,7 @@ app.get("/health", (_req, res) => {
     });
 });
 // swagger docs route
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swagger_1.default));
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 // Auth routes — login, register, refresh token, etc.
 // authRateLimiter applied specifically here because these are sensitive
 app.use("/api/v1/auth", authRateLimiter, auth_1.default);
