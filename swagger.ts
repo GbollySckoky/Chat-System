@@ -10,8 +10,8 @@ const options = {
       description: "API documentation for the Chat System",
     },
     servers: [
-      { url: "http://localhost:5000", description: "Development server" },
-      { url: "https://chat-system-1-wyk6.onrender.com/api-docs/", description: "Production server" },
+      // { url: "http://localhost:5000/", description: "Development server" },
+      { url: "https://chat-system-1-wyk6.onrender.com/", description: "Production server" },
     ],
     components: {
       securitySchemes: {
