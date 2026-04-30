@@ -368,6 +368,25 @@ const createRoom = async (req: AuthRequest, res: Response, next: NextFunction) =
     res.status(StatusCodes.CREATED).json({ success: true, message: "Room created", data: newRoom });
 }
 
+const addUserToRoom = async (req: AuthRequest, res: Response, next: NextFunction) => {
+    const { roomId } = req.params;
+    const userId = req.user?.userId;
+
+    if (!roomId) return res.status(StatusCodes.BAD_REQUEST).json({ success: false, message: "roomId is required" });
+    if (!userId) return res.status(StatusCodes.UNAUTHORIZED).json({ success: false, message: "Unauthorized" });
+
+    const room = await Room.findById(roomId);
+    if (!room) return res.status(StatusCodes.NOT_FOUND).json({ success: false, message: "Room not found" });
+
+    if (room.participants.includes(userId)) {
+        return res.status(StatusCodes.BAD_REQUEST).json({ success: false, message: "User already in room" });
+    }
+    
+    room.participants.push(userId);
+    await room.save();
+    res.status(StatusCodes.OK).json({ success: true, message: "User added to room", data: room });
+}
+
 /**
  * @swagger
  * /api/rooms/{roomId}:
@@ -408,4 +427,4 @@ const deleteRoom = async (req: AuthRequest, res: Response, next: NextFunction) =
     await room.save();
     res.status(StatusCodes.OK).json({ success: true, message: "Room deleted" });
 }
-export { getMessages, getRooms, createRoom, deleteRoom, deleteMessage }
+export { getMessages, getRooms, createRoom, deleteRoom, deleteMessage, addUserToRoom }

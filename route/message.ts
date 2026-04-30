@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { getMessages, getRooms, createRoom, deleteRoom, deleteMessage } from '../controller/messageController'
+import { getMessages, getRooms, createRoom, deleteRoom, deleteMessage, addUserToRoom } from '../controller/messageController'
 
 const router = Router()
 
@@ -49,6 +49,41 @@ router.get('/rooms', getRooms)
  *         description: Internal server error
  */
 router.post('/rooms', createRoom)
+
+/**
+ * @swagger
+ * /api/v1/messages/rooms/{roomId}/users:
+ *   post:
+ *     summary: Add a user to a room
+ *     tags: [Messages]
+ *     parameters:
+ *       - in: path
+ *         name: roomId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the room to add the user to
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               userId:
+ *                 type: string
+ *                 example: 60d0fe4f5311236168a109ca
+ *     responses:
+ *       200:
+ *         description: User added to room successfully
+ *       400:
+ *         description: Bad request
+ *       404:
+ *         description: Room or user not found
+ *       500:
+ *         description: Internal server error
+ */ 
+router.post('/rooms/:roomId/users', addUserToRoom)
 
 /**
  * @swagger
