@@ -81,6 +81,13 @@ const options = {
             }
           }
       },
+      addUserToRoom: {
+        type: 'object',
+        properties: {
+          roomId: { type: 'string', example: '60d0fe4f5311236168a109ca' },
+          userId: { type: 'string', example: '60d0fe4f5311236168a109cb' }
+        }
+      }
     },
     security: [{ bearerAuth: [] }],
   },
