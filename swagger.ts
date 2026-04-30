@@ -11,7 +11,7 @@ const options = {
     },
     servers: [
       // { url: "http://localhost:5000/", description: "Development server" },
-      { url: "https://chat-system-1-wyk6.onrender.com/", description: "Production server" },
+      { url: "https://chat-system-1-wyk6.onrender.com", description: "Production server" },
     ],
     components: {
       securitySchemes: {
