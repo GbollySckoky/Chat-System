@@ -330,7 +330,7 @@ const getRooms = async (req: Request, res: Response, next: NextFunction) => {
         Room.find({ deletedAt: null }).sort({ createdAt: -1 }),
         Room.countDocuments({ deletedAt: null })
     ]);
-    console.log("Active rooms:", room);
+    // console.log("Active rooms:", room);
     res.status(StatusCodes.OK).json({ success: true, data: room, total: totalRooms });
 }
 
