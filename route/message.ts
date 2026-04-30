@@ -68,7 +68,7 @@ const router = Router()
  *       500:
  *         description: Internal server error
  */
-router.get('/messages/:roomId', getMessages)
+router.get('/:roomId', getMessages)
 
 /**
  * @swagger
@@ -112,7 +112,7 @@ router.post('/rooms', createRoom)
 
 /**
  * @swagger
- * /api/v1/messages/{roomId}:
+ * /api/v1/messages/rooms/{roomId}:
  *   delete:
  *     summary: Delete a room
  *     tags: [Messages]
@@ -158,6 +158,6 @@ router.delete('/rooms/:roomId', deleteRoom)
  *       500:
  *         description: Internal server error
  */
-router.delete('/messages/:messageId', deleteMessage)
+router.delete('/:messageId', deleteMessage)
 
 export default router
