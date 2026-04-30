@@ -4,71 +4,11 @@ import { getMessages, getRooms, createRoom, deleteRoom, deleteMessage } from '..
 const router = Router()
 
 /**
- * For a chat system, the best practice is:
- * HTTP for — anything that is a resource operation:
- *
- * POST /api/v1/rooms — create room
- * GET /api/v1/rooms — list rooms
- * DELETE /api/v1/rooms/:roomId — delete room
- * GET /api/v1/messages/:roomId — fetch message history
- * DELETE /api/v1/messages/:messageId — delete message
- *
- * WebSocket for — anything real-time:
- *
- * sendMessage
- * joinRoom
- * leaveRoom
- * typing... indicators
- * Online/offline presence
- */
-
-/**
  * @swagger
  * tags:
  *   name: Messages
  *   description: Message and room management
  */
-
-/**
- * @swagger
- * /api/v1/messages/{roomId}:
- *   get:
- *     summary: Fetch message history for a room
- *     tags: [Messages]
- *     parameters:
- *       - in: path
- *         name: roomId
- *         required: true
- *         schema:
- *           type: string
- *         description: The ID of the chat room
- *       - in: query
- *         name: page
- *         schema:
- *           type: integer
- *           default: 1
- *         description: Page number for pagination
- *       - in: query
- *         name: limit
- *         schema:
- *           type: integer
- *           default: 20
- *         description: Number of messages per page
- *     responses:
- *       200:
- *         description: A paginated list of messages
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Message'
- *       400:
- *         description: Bad request
- *       404:
- *         description: Room not found
- *       500:
- *         description: Internal server error
- */
-router.get('/:roomId', getMessages)
 
 /**
  * @swagger
@@ -134,6 +74,47 @@ router.post('/rooms', createRoom)
  *         description: Internal server error
  */
 router.delete('/rooms/:roomId', deleteRoom)
+
+/**
+ * @swagger
+ * /api/v1/messages/{roomId}:
+ *   get:
+ *     summary: Fetch message history for a room
+ *     tags: [Messages]
+ *     parameters:
+ *       - in: path
+ *         name: roomId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the chat room
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Page number for pagination
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 20
+ *         description: Number of messages per page
+ *     responses:
+ *       200:
+ *         description: A paginated list of messages
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Message'
+ *       400:
+ *         description: Bad request
+ *       404:
+ *         description: Room not found
+ *       500:
+ *         description: Internal server error
+ */
+router.get('/:roomId', getMessages)
 
 /**
  * @swagger
