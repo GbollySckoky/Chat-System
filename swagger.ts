@@ -87,6 +87,14 @@ const options = {
           roomId: { type: 'string', example: '60d0fe4f5311236168a109ca' },
           userId: { type: 'string', example: '60d0fe4f5311236168a109cb' }
         }
+      },
+      notifications:{
+        type: 'objects',
+        properties: {
+          roomId: { type: 'string', example: '60d0fe4f5311236168a109ca' },
+          userId: { type: 'string', example: '60d0fe4f5311236168a109cb' },
+          message: {type: 'string', example: 'Hello World!'}
+        }
       }
     },
     security: [{ bearerAuth: [] }],
