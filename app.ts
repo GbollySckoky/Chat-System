@@ -212,7 +212,7 @@ app.use("/api/v1/auth", authRateLimiter, authRouter);
 // Message routes — fetch conversations, message history, etc.
 app.use("/api/v1/messages",authMiddleware, messageRouter);
 
-app.use("/api/v1/messages/notification",authMiddleware, notificationRouter);
+app.use("/api/v1/notifications",authMiddleware, notificationRouter);
 
 // ============================================================
 // ERROR HANDLING
