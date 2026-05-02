@@ -1,9 +1,21 @@
-import mongoose from "mongoose";
+import mongoose, { Document } from "mongoose";
+interface INotification extends Document{
+    userId: string;   // who receives the notification
+    roomId?: string; // Optional, if the notification is related to a specific room
+    message: string;
+    isRead: boolean;
+    createdAt: Date;
+    type: 'message' | 'mention' | 'join' | 'leave'
+}
 
-const Notifications = new mongoose.Schema({
+const Notifications = new mongoose.Schema<INotification>({
     userId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Auth',
+        type: String,
+        index: true,
+        required: true
+    },
+    roomId:{
+        type: String,
         required: true
     },
     message: {
@@ -14,10 +26,13 @@ const Notifications = new mongoose.Schema({
         type: Boolean,
         default: false
     },
-    createdAt: {
-        type: Date,
-        default: Date.now
+    type: {
+        type: String,
+        enum: ['message', 'mention', 'join', 'leave'],
+        default: 'message'
     }
-});
+},
+ { timestamps: true }
+);
 
 export default mongoose.model('Notifications', Notifications);

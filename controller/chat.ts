@@ -1,6 +1,7 @@
 import type { Server as SocketServer } from "socket.io";
 import { AuthSocket, SendMessagePayload } from "../interface/authSocket";
 import Messages from "../models/message";
+import Notifcations from "../models/notifcations";
 
 /**
  * For a chat system, the best practice is:
@@ -65,7 +66,7 @@ export function registerChatHandlers(io: SocketServer, socket: AuthSocket) {
         if (!roomId) return callback({ status: 'error', message: 'roomId is required' });
         if (content.length > 4000) return callback({ status: 'error', message: 'Message too long' });
 
-        try {
+
             const saved = await Messages.create({
                 roomId,
                 sender: { userId: user.userId, username: user.username, avatar: user.avatar },
@@ -75,12 +76,27 @@ export function registerChatHandlers(io: SocketServer, socket: AuthSocket) {
             });
 
             const messageData = saved.toObject();
+
+            // broadcast message to room
             io.to(roomId).emit("message:new", messageData);
+            // get all users in the room except sender
+            const roomUsers = getPresenceList(roomId).filter(
+                (u) => u.userId !== user.userId
+            )
+
+            // save notification for each user and emit to them
+            for(const roomUser of roomUsers){
+                const notification = await Notifcations.create({
+                    userId: roomUser.userId,
+                    roomId,
+                    message: `${user.username} sent a message in ${roomId}`,
+                    type: 'message'
+                })
+                // emit to that specific user's socket
+                io.to(roomUser.socketId).emit("notification:new", notification)
+            }
+
             callback({ status: 'ok', message: messageData });
-        } catch (error) {
-            console.error("Error sending message:", error);
-            callback({ status: 'error', message: 'Failed to send message' });
-        }
     });
 
     socket.on("message:delete", async (messageId: string, callback) => {
