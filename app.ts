@@ -54,7 +54,7 @@ import { AuthSocket } from "./interface/authSocket";
 import { registerChatHandlers } from "./controller/chat";
 import errorHandler from "./middleware/error-handler";
 import authMiddleware from "./middleware/authentication";
-
+import notificationRouter from './route/notification'
 
 // ─── Shared CORS config ───────────────────────────────────────────────────────
 // Defined once and reused in both Express and Socket.IO
@@ -211,6 +211,8 @@ app.use("/api/v1/auth", authRateLimiter, authRouter);
 
 // Message routes — fetch conversations, message history, etc.
 app.use("/api/v1/messages",authMiddleware, messageRouter);
+
+app.use("/api/v1/messages/notification",authMiddleware, notificationRouter);
 
 // ============================================================
 // ERROR HANDLING
