@@ -22,7 +22,7 @@ const router = Router()
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Notification'
+ *               $ref: '#/components/schemas/notifications'
  *       500:
  *         description: Internal server error
  */
