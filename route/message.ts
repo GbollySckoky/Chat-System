@@ -68,11 +68,7 @@ router.post('/rooms', createRoom)
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             properties:
- *               userId:
- *                 type: string
- *                 example: 60d0fe4f5311236168a109ca
+ *             $ref: '#/components/schemas/addUserToRoom'
  *     responses:
  *       200:
  *         description: User added to room successfully
