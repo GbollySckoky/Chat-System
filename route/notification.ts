@@ -12,7 +12,7 @@ const router = Router()
 
 /**
  * @swagger
- * /api/v1/notifications:
+ * /api/v1/notifications/:
  *   get:
  *     summary: Get all notifications for the authenticated user
  *     tags: [Notifications]
@@ -53,7 +53,7 @@ router.patch('/:notificationId', markAsRead)
 
 /**
  * @swagger
- * /api/v1/notifications:
+ * /api/v1/notifications/:
  *   patch:
  *     summary: Mark all notifications as read
  *     tags: [Notifications]
